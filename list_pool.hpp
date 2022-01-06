@@ -121,7 +121,7 @@ class list_pool {
     list_pool(const list_pool& x) = default;
     list_pool& operator=(const list_pool& x) = default;
     list_pool(list_pool&& x) noexcept = default ;
-    list_pool& operator=(list_pool&&) noexcept = default;
+    list_pool& operator=(list_pool&& x) noexcept = default;
 
     using iterator =  _iterator<node_t, T, N>;
     using const_iterator =  _iterator<node_t, const T, const N>;
