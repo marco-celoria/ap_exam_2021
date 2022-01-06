@@ -2,6 +2,22 @@
 #include <cassert>
 #include <algorithm>
 
+template <typename T,typename S > void boo_const (const list_pool<T> & x, S l)
+{
+  auto it = x.begin(l);
+  std::cout << "const front element = " << *it << std::endl;
+  //*it= 77;
+}
+
+
+template <typename T,typename S > void boo ( list_pool<T> & x, S l)
+{
+  auto it = x.begin(l);
+  *it= 77;
+  std::cout << "front element = " << *it << std::endl;
+}
+
+
 class foo
 {
   friend std::ostream &operator<<(std::ostream &os, const foo &item) {
@@ -85,16 +101,12 @@ int main()
     std::cout << *it << " ";
   std::cout << std::endl;
   auto N = std::find(pool.cbegin(l1), pool.cend(l1), 2);
-  if(N!=pool.cend(l1)) std::cout << "This is not the end, my friend: " << *N << std::endl;
+  if(N!=pool.cend(l1)) std::cout << "This is not the end, my only friend: " << *N ;
   std::cout << std::endl;
   std::cout << "=============================" << std::endl;
   
   list_pool<int> pool2{22};
-  
   auto l2 = pool2.new_list();
-  std::cout << "l2: ";
-  std::cout << "free list: ";
-  std::cout << "all elements list: \n";
   l2 = pool2.push_front(11, l2);
   l2 = pool2.push_front(10, l2);
   l2 = pool2.push_front(9, l2);
@@ -106,11 +118,13 @@ int main()
   l2 = pool2.push_front(3, l2);
   l2 = pool2.push_front(2, l2);
   l2 = pool2.push_front(1, l2);
-  std::cout << "--------------------" << std::endl;
+  for(auto it = pool2.cbegin(l2) ; it != pool2.cend(l2); ++it )
+    std::cout << *it << " " ;
+  std::cout<< std::endl;
   l2=pool2.free_list(l2);
-  
-  std::cout << "!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-  
+  for(auto it = pool2.cbegin(l2) ; it != pool2.cend(l2); ++it )
+    std::cout << *it << " " ;
+  std::cout<< std::endl;
   list_pool<int> pool3{};
   auto l3 = pool3.new_list();
   l3 = pool3.push_back(1, l3);
@@ -126,43 +140,44 @@ int main()
   l3 = pool3.push_back(11, l3);
   std::cout << "++++++++++++++++" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "1---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "2---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "3---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "4---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "5---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "6---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "7---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "8---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "9---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "10---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "11---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "12---------------" << std::endl;
   l3 = pool3.free(l3);
-  std::cout << "13---------------" << std::endl;
   l3 = pool.free(l3);
-  std::cout << "--------------------" << std::endl;  
   std::cout << "++++++++++++++++" << std::endl;
   l3 = pool3.push_front(1, l3);
-  std::cout << "++++++++++++++++" << std::endl;
   l3 = pool3.push_back(2, l3);
+  for(auto it = pool3.begin(l3); it != pool3.end(l3); ++it)
+    std::cout << *it << " " ;
+
+  for(auto it = pool3.begin(l3); it != pool3.end(l3); ++it)
+      ++*it ;
+    
+  std::cout << std::endl;
+  for(auto it = pool3.cbegin(l3); it != pool3.cend(l3); ++it)
+    std::cout << *it << " " ;
+  std::cout << std::endl;
+  std::cout << "=============================" << std::endl;
+  boo(pool3, l3);
+  boo_const(pool3, l3);
   std::cout << "=============================" << std::endl;
   
   list_pool<int> pool4{22};
+  std::cout << "capacity = "<< pool4.capacity() << std::endl;
   auto l4 = pool4.new_list();
+  std::cout << "capacity = "<< pool4.capacity() << std::endl;
+  pool4.reserve(4);
+  std::cout << "capacity = "<< pool4.capacity() << std::endl;
   l4=pool4.free_list(l4);
-  std::cout << "--------------------" << std::endl;
   l4 = pool4.push_back(1, l4);
   l4 = pool4.push_back(2, l4);
   l4 = pool4.push_back(3, l4);
@@ -175,7 +190,7 @@ int main()
   l4 = pool4.push_back(10, l4);
   l4 = pool4.push_back(11, l4);
   std::cout << "--------------------" << std::endl;
-  
+  std::cout << "default constructor?" << std::endl;
   list_pool<int> pool10{};
   auto l10 = pool10.new_list();
   auto l11 = pool10.new_list();  
@@ -192,24 +207,27 @@ int main()
   l10 = pool10.push_front(1, l10);
   l11 = pool10.push_front(100, l11);
 
-  std::cout << "copy" << std::endl;
+  std::cout << "copy constructor?" << std::endl;
   list_pool<int> pool_copy{pool10};
   
-  std::cout << "assignment" << std::endl;
+  std::cout << "copy assignment?" << std::endl;
   pool_copy=pool4;
   
-  std::cout << "move" << std::endl;
+  std::cout << "move constructor?" << std::endl;
   list_pool<int> pool_move{std::move(pool10)};
-  std::cout << "move assignment" << std::endl;
+  std::cout << "move assignment?" << std::endl;
   l4=pool4.free_list(l4);
   l4=pool4.push_back(8,l4);
   pool_move=std::move(pool4);
-
+  
+  std::cout << "--------------------" << std::endl;
+  
   std::cout << "reserve" << std::endl;
   list_pool<foo> pool_reserve{5};
   std::cout <<"capacity="<< pool_reserve.capacity() << std::endl;
   auto lres = pool_reserve.new_list();
   std::cout <<"capacity="<< pool_reserve.capacity() << std::endl;
+  std::cout << "--------------------" << std::endl;
   foo msg1{"I've just had my third dose of vaccine."};
   foo msg2{"What I write is..."};
   foo msg3{"unpredictable."};
@@ -217,10 +235,8 @@ int main()
   lres=pool_reserve.push_back(msg2,lres);
   lres=pool_reserve.push_back(msg3,lres);
   std::cout <<"size="<<  pool_reserve.list_size(lres) << std::endl;
-  for(auto it = pool_reserve.begin(lres); it !=  pool_reserve.end(lres); ++it )
-    {
+  for(auto it = pool_reserve.cbegin(lres); it !=  pool_reserve.cend(lres); ++it )
       std::cout << it->msg << " ";
-    }
   std::cout << std::endl;
   lres=pool_reserve.free_list(lres);
   lres=pool_reserve.push_back(foo{"1"},lres);
@@ -236,7 +252,7 @@ int main()
     }
   std::cout << std::endl;
   std::cout << "This shall throw error:" << std::endl;
-  std::cout <<"*end="<< *(pool_reserve.end(lres)) << std::endl;
+  std::cout <<"*end="<< *(pool_reserve.cend(lres)) << std::endl;
   // for(auto it = pool_reserve.begin(lres); it !=  pool_reserve.end(lres);  )
   //  {
   //    std::cout << (++it)->msg << " "<< std::endl;

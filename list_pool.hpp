@@ -64,12 +64,16 @@ class list_pool {
   struct node_t {
     node_t() noexcept = default;
     node_t(const T v, const N n) : value{v}, next{n} {}
+    node_t(node_t&&) = default;
+    node_t& operator=(node_t&&) = default;
+    node_t(const node_t& that) = default;
+    node_t& operator=(const node_t& x) = default;
     // Question: When I move/move-assign nodes, I am moving also the T value object.
     // What if the T object is complicated, and it has a move constructor that throws an error?
     // Maybe it is better to mark it as potentially-throwing...
     T value;
     N next;
-    };
+  };
   
   using list_type = N;
   using value_type = T;
@@ -132,19 +136,27 @@ class list_pool {
 public:
   
   list_pool() noexcept = default ;
+  //list_pool()  {std::cout << "default constructor" << std::endl;}
   explicit list_pool(size_type n) {  pool.reserve(n); } // reserve n nodes in the pool
-  
+  list_pool(list_pool&& x) = default;
+  //list_pool(list_pool&& )  {std::cout << "move constructor" << std::endl;}
+  list_pool& operator=(list_pool&& x) = default;
+  //list_pool& operator=(list_pool&& ) {std::cout << "move assignment" << std::endl;  return *this;}
+  list_pool(const list_pool& that) = default;
+  //list_pool(const list_pool& )  {std::cout << "copy constructor" << std::endl;}
+  list_pool& operator=(const list_pool& x) = default;
+  //list_pool& operator=(const list_pool& )  {std::cout << "copy assignment" << std::endl;  return *this;}
   using iterator =  _iterator<node_t, T, N>;
   using const_iterator =  _iterator<node_t, const T,  N>;
   
-  iterator begin(list_type head) noexcept { return iterator{ &pool, head }; }
+  iterator begin(list_type head) noexcept {return iterator{ &pool, head }; }
   iterator end(list_type ) noexcept { return iterator{ &pool, list_type (0) }; } // this is not a typo
   
-  const_iterator begin(list_type head) const noexcept { return const_iterator{ &pool, head }; }
-  const_iterator end(list_type ) const noexcept { return const_iterator{ &pool, list_type(0) };  }
+  const_iterator begin(list_type head) const noexcept {return const_iterator{const_cast<std::vector<node_t>*>(&pool), head};}
+  const_iterator end(list_type ) const noexcept { return const_iterator{const_cast<std::vector<node_t>*>(&pool), list_type(0)};}
   
-  const_iterator cbegin(list_type head) const noexcept { return const_iterator{ const_cast<std::vector<node_t> *>(&pool), head }; }
-  const_iterator cend(list_type ) const noexcept { return const_iterator{const_cast<std::vector<node_t> *>(&pool), list_type(0) }; }
+  const_iterator cbegin(list_type head) const noexcept {return const_iterator{const_cast<std::vector<node_t>*>(&pool), head};}
+  const_iterator cend(list_type ) const noexcept { return const_iterator{const_cast<std::vector<node_t>*>(&pool), list_type(0)};}
   
   list_type new_list()  { reserve(8); return list_type(0); } // return an empty list
   
