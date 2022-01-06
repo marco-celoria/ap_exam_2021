@@ -214,12 +214,14 @@ int main()
   pool_copy=pool4;
   
   std::cout << "move constructor?" << std::endl;
-  list_pool<int> pool_move{std::move(pool10)};
-  std::cout << "move assignment?" << std::endl;
-  l4=pool4.free_list(l4);
-  l4=pool4.push_back(8,l4);
-  pool_move=std::move(pool4);
-  
+  {
+    list_pool<int> pool_move{std::move(pool10)};
+    std::cout << "move assignment?" << std::endl;
+    l4=pool4.free_list(l4);
+    l4=pool4.push_back(8,l4);
+    pool_move=std::move(pool4);
+    std::cout << "default destructor?" << std::endl;
+  }
   std::cout << "--------------------" << std::endl;
   
   std::cout << "reserve" << std::endl;
