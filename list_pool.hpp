@@ -183,8 +183,7 @@ class list_pool {
     }
     
     void print_list(const list_type head) const noexcept {
-        auto it = head;
-        _print(it);
+        _print(head);
     }
     
     void print_free_list() const noexcept {
