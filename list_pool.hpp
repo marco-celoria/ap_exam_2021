@@ -187,8 +187,7 @@ class list_pool {
     }
     
     void print_free_list() const noexcept {
-        auto it = free_node_list;
-        _print(it);
+        _print(free_node_list);
     }
     
     void print_pool() const noexcept {
