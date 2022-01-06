@@ -54,7 +54,7 @@ class list_pool {
       node_t& operator=(const node_t& x) noexcept = default; // We do not acquire any resources
       node_t(node_t&& x) noexcept = default;
       node_t& operator=(node_t&&) noexcept = default;
-      ~node_t()  = default; // noexcept by default?
+      ~node_t() = default; // noexcept by default, right?
       T value;
       N next;
     };
@@ -123,7 +123,7 @@ class list_pool {
     list_pool& operator=(const list_pool& x) = default;
     list_pool(list_pool&& x) noexcept = default ;
     list_pool& operator=(list_pool&& x) noexcept = default;
-    ~list_pool() = default; // noexcept by default? 
+    ~list_pool() = default; // noexcept by default, right?
 
     using iterator =  _iterator<node_t, T, N>;
     using const_iterator =  _iterator<node_t, const T, const N>;
@@ -137,7 +137,7 @@ class list_pool {
     const_iterator cbegin(list_type head) const noexcept { return const_iterator{ &pool, head }; }
     const_iterator cend(list_type ) const noexcept { return const_iterator{ &pool, list_type(0) }; }
     
-    list_type new_list()  { reserve(8); return list_type(0);} // return an empty list
+    list_type new_list()  { reserve(8); return list_type(0); } // return an empty list
 
     void reserve(size_type n) { pool.reserve(n); } // reserve n nodes in the pool
     
