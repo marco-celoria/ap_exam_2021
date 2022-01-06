@@ -6,8 +6,6 @@
 
 template <typename node_t, typename T, typename N>
 class _iterator {
-    std::vector<node_t> * ptr_pool ;
-    N current;
     
  public:
   using value_type = T;
@@ -20,16 +18,22 @@ class _iterator {
 
   _iterator(std::vector<node_t> * ptr, list_type x) noexcept : ptr_pool{ptr},current{x} {} // We do not acquire any resources
     
-  reference operator*() const noexcept { return (*ptr_pool)[current-1].value; }
-    // If node_t& node(list_type x) noexcept is noexcept, then also reference operator*() const noexcept can be noexcept, right?
+    reference operator*() const  {
+        check(current, "dereference past end");
+        return (*ptr_pool)[current-1].value;
+    }
     
-  _iterator& operator++() noexcept {  // pre-increment
-    current = (*ptr_pool)[current-1].next;
+    pointer operator->() const  { // delegate the real work to the dereference operator
+        return & this->operator*();
+    }
+    
+  _iterator& operator++()  {  // pre-increment
+      check(current, "increment past end");
+      current = (*ptr_pool)[current-1].next;
     return *this;
   }
-    // If list_type& next(list_type x) noexcept is noexcept, then also _iterator& operator++() noexcept can be noexcept, right?
-    
-  _iterator operator++(int) noexcept {  // post-increment
+   
+  _iterator operator++(int)  {  // post-increment
     auto tmp = *this;
     ++(*this);
     return tmp;
@@ -42,6 +46,15 @@ class _iterator {
   friend bool operator!=(const _iterator& x, const _iterator& y) noexcept {
     return !(x == y);
   }
+  
+private:
+    std::vector<node_t> * ptr_pool ;
+    N current;
+    
+    void check(list_type i, const std::string &msg) const {
+      if (size_type(i) < 1 || size_type(i) > ptr_pool->size())
+          throw std::out_of_range(msg);
+    }
 };
 
 template <typename T, typename N = std::size_t>
@@ -115,6 +128,7 @@ class list_pool {
         std::cout << std::endl;
     }
 
+    
   public:
     
     list_pool() noexcept = default ;
