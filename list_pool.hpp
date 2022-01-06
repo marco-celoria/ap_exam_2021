@@ -159,7 +159,7 @@ class list_pool {
     list_type push_back(T&& val, list_type head)       { return _push_back(std::move(val), head); }
   
     list_type free(list_type x) noexcept { // delete first node
-        if(is_empty(x)) { std::cerr << "The list is already empty" << std::endl; return x;}
+        if(is_empty(x)) { std::cout << "The list is already empty" << std::endl; return x;}
         auto tmp = next(x);
         next(x) = free_node_list;
         free_node_list = x;
@@ -167,7 +167,7 @@ class list_pool {
     }
 
     list_type free_list(list_type x) noexcept { // free entire list
-        if(is_empty(x)) { std::cerr <<"The list is already empty" << std::endl; return x; }
+        if(is_empty(x)) { std::cout <<"The list is already empty" << std::endl; return x; }
         while(x!= end())
             x=free(x);
         return x;
