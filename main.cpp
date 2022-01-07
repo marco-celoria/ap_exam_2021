@@ -17,7 +17,6 @@ template <typename T,typename S > void boo ( list_pool<T> & x, S l)
   std::cout << "front element = " << *it << std::endl;
 }
 
-
 class foo
 {
   friend std::ostream &operator<<(std::ostream &os, const foo &item) {
@@ -26,13 +25,20 @@ class foo
   }
   
 public:
-  foo() = default;
-  foo(const std::string & message) : msg{message} {}
+  foo() noexcept = default;
+  foo(const std::string & message) noexcept : msg{message} {}
+  foo(foo&&that) noexcept:  msg{std::move(that.msg)} {std::cout << "foo move constructor" << std::endl;}
+  foo& operator=(foo&&that) noexcept { if (this != &that){msg=std::move(that.msg) ;} std::cout << "foo move assignment" << std::endl; return *this;}
+  foo(const foo& that) noexcept: msg{that.msg} {std::cout << "foo copy constructor" << std::endl;}
+  foo& operator=(const foo& that) noexcept {if (this != &that)
+      {msg=that.msg ;} std::cout << "foo copy assignment" << std::endl; return *this;}
+  ~foo() {std::cout << "foo default destructor" << std::endl;}
   std::string msg;
 };
 
 int main()
 {
+  
   list_pool<int> pool{};
   auto l1 = pool.new_list();
   long unsigned int cnt = 0;
@@ -55,17 +61,18 @@ int main()
   l1 = pool.push_front(3, l1);
   l1 = pool.push_front(2, l1);
   l1 = pool.push_front(1, l1);
-  
-  auto M = std::max_element(pool.begin(l1), pool.end(l1));
-  assert(*M == 11);
-
-  auto m = std::min_element(pool.cbegin(l1), pool.cend(l1));
-  assert(*m == 1);
   for(auto it =pool.begin(l1); it !=  pool.end(l1); ++it )
     {
       std::cout << "*it= " << *it << std::endl;
       ++cnt;
     }
+  auto M = std::max_element(pool.begin(l1), pool.end(l1));
+  std::cout << "*M=" << *M << std::endl;
+  assert(*M == 11);
+  
+  auto m = std::min_element(pool.cbegin(l1), pool.cend(l1));
+  assert(*m == 1);
+  
   l1=pool.free_list(l1);  
   l1 = pool.push_front(11, l1);
   l1 = pool.push_front(10, l1);
@@ -104,7 +111,6 @@ int main()
   if(N!=pool.cend(l1)) std::cout << "This is not the end, my only friend: " << *N ;
   std::cout << std::endl;
   std::cout << "=============================" << std::endl;
-  
   list_pool<int> pool2{22};
   auto l2 = pool2.new_list();
   l2 = pool2.push_front(11, l2);
@@ -157,11 +163,9 @@ int main()
   l3 = pool3.push_front(1, l3);
   l3 = pool3.push_back(2, l3);
   for(auto it = pool3.begin(l3); it != pool3.end(l3); ++it)
-    std::cout << *it << " " ;
-
+    std::cout << *it << " " ; 
   for(auto it = pool3.begin(l3); it != pool3.end(l3); ++it)
       ++*it ;
-    
   std::cout << std::endl;
   for(auto it = pool3.cbegin(l3); it != pool3.cend(l3); ++it)
     std::cout << *it << " " ;
@@ -170,7 +174,6 @@ int main()
   boo(pool3, l3);
   boo_const(pool3, l3);
   std::cout << "=============================" << std::endl;
-  
   list_pool<int> pool4{22};
   std::cout << "capacity = "<< pool4.capacity() << std::endl;
   auto l4 = pool4.new_list();
@@ -192,6 +195,7 @@ int main()
   std::cout << "--------------------" << std::endl;
   std::cout << "default constructor?" << std::endl;
   list_pool<int> pool10{};
+  std::cout << "Making two new_list and push_front 12 times" << std::endl;
   auto l10 = pool10.new_list();
   auto l11 = pool10.new_list();  
   l10 = pool10.push_front(11, l10);
@@ -206,25 +210,22 @@ int main()
   l10 = pool10.push_front(2, l10);
   l10 = pool10.push_front(1, l10);
   l11 = pool10.push_front(100, l11);
-
   std::cout << "copy constructor?" << std::endl;
   list_pool<int> pool_copy{pool10};
-  
   std::cout << "copy assignment?" << std::endl;
   pool_copy=pool4;
-  
   std::cout << "move constructor?" << std::endl;
   {
     list_pool<int> pool_move{std::move(pool10)};
-    std::cout << "move assignment?" << std::endl;
+    std::cout << "Preparing for move assignment" << std::endl;
     l4=pool4.free_list(l4);
     l4=pool4.push_back(8,l4);
+    std::cout << "move assignment?" << std::endl;
     pool_move=std::move(pool4);
     std::cout << "default destructor?" << std::endl;
   }
   std::cout << "--------------------" << std::endl;
-  
-  std::cout << "reserve" << std::endl;
+  std::cout << "reserve = 5 ?" << std::endl;
   list_pool<foo> pool_reserve{5};
   std::cout <<"capacity="<< pool_reserve.capacity() << std::endl;
   auto lres = pool_reserve.new_list();
@@ -238,7 +239,7 @@ int main()
   lres=pool_reserve.push_back(msg3,lres);
   std::cout <<"size="<<  pool_reserve.list_size(lres) << std::endl;
   for(auto it = pool_reserve.cbegin(lres); it !=  pool_reserve.cend(lres); ++it )
-      std::cout << it->msg << " ";
+    std::cout << it->msg << " ";
   std::cout << std::endl;
   lres=pool_reserve.free_list(lres);
   lres=pool_reserve.push_back(foo{"1"},lres);
@@ -246,19 +247,77 @@ int main()
   lres=pool_reserve.push_back(foo{"3"},lres);
   lres=pool_reserve.push_back(foo{"4"},lres);
   std::cout <<"size="<<  pool_reserve.list_size(lres) << std::endl;
+  std::cout << "--------------------" << std::endl;
+  std::cout << "Copy vs Move" << std::endl;
+  list_pool<foo> new_pool{5};
+  auto lcp = new_pool.new_list();
+  std::cout << "Pushing" << std::endl;
+  lcp=new_pool.push_front(std::move(foo{"A"}),lcp);
+  std::cout << "--" << std::endl; 
+  lcp=new_pool.push_front(std::move(foo{"B"}),lcp);
+  lcp=new_pool.push_front(std::move(foo{"C"}),lcp);
+  lcp=new_pool.push_front(std::move(foo{"D"}),lcp);
+  lcp=new_pool.push_front(std::move(foo{"E"}),lcp);
+  lcp=new_pool.push_front(std::move(foo{"F"}),lcp);
+  lcp=new_pool.push_front(std::move(foo{"G"}),lcp);
+  std::cout << "Here we construct:" << std::endl;
+  list_pool<foo> pool_ma;
+  list_pool<foo> pool_ca;
+  std::cout << "Here we copy:" << std::endl;
+  list_pool<foo> pool_c{new_pool};
+  for(auto it = new_pool.cbegin(lcp); it != new_pool.cend(lcp); ++it)
+    std::cout << *it << " ";
+  std::cout << std::endl;
+  for(auto it = pool_c.cbegin(lcp); it != pool_c.cend(lcp); ++it)
+    std::cout << *it << " ";
+  std::cout << std::endl;
+  std::cout << "Here we move:" << std::endl;
+  list_pool<foo> pool_m{std::move(new_pool)};
+  for(auto it = pool_m.cbegin(lcp); it != pool_m.cend(lcp); ++it)
+    std::cout << *it << " ";
+  std::cout << std::endl;
+  std::cout << "Here we copy assign:" << std::endl;
+  pool_ca = pool_m;
+  for(auto it = pool_m.cbegin(lcp); it != pool_m.cend(lcp); ++it)
+    std::cout << *it << " ";
+  std::cout << std::endl;
+  for(auto it = pool_ca.cbegin(lcp); it != pool_ca.cend(lcp); ++it)
+    std::cout << *it << " ";
+  std::cout << std::endl;
+  std::cout << "Here we move assign:" << std::endl;
+  pool_ma = std::move(pool_m);
+  for(auto it = pool_ma.cbegin(lcp); it != pool_ma.cend(lcp); ++it)
+    std::cout << *it << " ";
+  std::cout << std::endl;
+  std::cout << "--------------------" << std::endl;
   std::cout << "Throw check:" << std::endl;
   std::cout << "This shall NOT throw error:" << std::endl;
   for(auto it = pool_reserve.begin(lres); it !=  pool_reserve.end(lres);  )
-    {
       std::cout << (it++)->msg << " "<< std::endl;
-    }
   std::cout << std::endl;
   std::cout << "This shall throw error:" << std::endl;
-  std::cout <<"*end="<< *(pool_reserve.cend(lres)) << std::endl;
-  // for(auto it = pool_reserve.begin(lres); it !=  pool_reserve.end(lres);  )
-  //  {
-  //    std::cout << (++it)->msg << " "<< std::endl;
-  //  }
+  //try { // I have leaks when I leaks -atExit -- ./main.x, so I comment out the catches
+  std::cout << *(pool_reserve.cend(lres)) << std::endl; 
+  //}
+  //catch (const std::out_of_range& oor) {
+  //std::cerr << "Out of Range error: " << oor.what() << '\n';
+  //}
+  /*
+    for(auto it = pool_reserve.begin(lres); it !=  pool_reserve.end(lres);  )
+    {
+    std::cout << (++it)->msg << " "<< std::endl;
+    }
+  */
+  /*
+    try {
+    std::cout << *(pool_reserve.cend(lres)) << std::endl;
+    }
+    catch (const out_of_range& s) {
+    std::cerr << s.message << std::endl;
+    return 1;
+    } 
+  */
   std::cout << std::endl;
+  
   return 0;
 }

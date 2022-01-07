@@ -2,7 +2,13 @@
 #include <vector>
 #include <iostream>
 #include <cassert>
+#include <stdexcept>      // std::out_of_range
 // TODO: pass the exam :)
+
+struct out_of_range {
+  std::string message;
+  out_of_range(std::string s) : message{std::move(s)} {}
+};
 
 template <typename node_t, typename T, typename N>
 class _iterator {
@@ -53,8 +59,9 @@ private:
   N current;
   
   void check(list_type i, const std::string &msg) const {
-      if (size_type(i) < 1 || size_type(i) > ptr_pool->size())
-	throw std::out_of_range(msg);
+    if (size_type(i) < 1 || size_type(i) > ptr_pool->size())
+      // throw out_of_range(msg);
+      throw std::out_of_range(msg);
   }
 };
 
@@ -64,14 +71,38 @@ class list_pool {
   struct node_t {
     node_t() noexcept = default;
     node_t(const T v, const N n) : value{v}, next{n} {}
-    node_t(node_t&&) = default;
-    node_t& operator=(node_t&&) = default;
-    // Question: When I move/move-assign nodes, I am moving also the T value object.
+    node_t(node_t&&) noexcept = default;
+    node_t& operator=(node_t&&) noexcept = default;
+    node_t(const node_t& ) = default;
+    node_t& operator=(const node_t& ) = default;
+    ~node_t() = default;
+    
+    //node_t() {std::cout << "note_t default constructor" << std::endl;}
+    
+    //node_t(node_t&& that) noexcept : value{std::move(that.value)}, next{std::move(that.next)} {std::cout << "note_t move constructor" << std::endl;}
+    
+    //node_t& operator=(node_t&&that) noexcept {
+    //    if (this != &that){value=std::move(that.value); next= std::move(that.next);}
+    //    std::cout << "note_t move assignment" << std::endl; return *this;
+    //}
+    
+    //node_t& operator=(node_t&&) noexcept = default;
+    //node_t(const node_t& that ) : value{that.value}, next{that.next}  {std::cout << "note_t copy constructor" << std::endl;}
+    //node_t& operator=(const node_t& that) {
+    //    if (this != &that){value=that.value; next=that.next;} std::cout << "note_t copy assignment" << std::endl; return *this;
+    //}
+    
+    // //~node_t() {std::cout << "note_t default destructor" << std::endl;}
+    
+    // Question: When I move/move-assign nodes, I am moving also the T value object. Right?
     // What if the T object is complicated, and it has a move constructor that throws an error?
     // Maybe it is better to mark it as potentially-throwing...
-    node_t(const node_t& that) = default;
-    node_t& operator=(const node_t& x) = default;
-    ~node_t() = default;
+    // May std::move_if_noexcept(g); be a good idea to suggest std::vector<node_t> to use move semantics for Non-throwing nodes ?
+    // Or maybe something like
+    // C& operator=(C&& c) noexcept(alloc_traits::propagate_on_container_move_assignment{} || alloc_traits::is_always_equal{});
+    // Final decision: we adopt risky NOT Strong exception safety policy, we are HPC and moves are noexpect
+    // With this policy I checked that sometimes the compiler chooses to use a move constructor rather than a copy constructor
+    
     T value;
     N next;
   };
@@ -79,7 +110,7 @@ class list_pool {
   using list_type = N;
   using value_type = T;
   using size_type = typename std::vector<node_t>::size_type;
-    
+  
   std::vector<node_t> pool;
   list_type free_node_list{0}; // at the beginning, it is empty
   
@@ -92,63 +123,83 @@ class list_pool {
     if (free_node_list) {
       auto new_head = free_node_list;
       free_node_list=next(free_node_list);
-      value(new_head)=val;
+      value(new_head)=std::forward<X>(val);
       if (is_empty(head)) next(new_head)=end();
       else next(new_head)=head;
       return new_head;
     }
     else {
-      if (is_empty(head)) pool.emplace_back(val, end());
-      else pool.emplace_back(val, head);
+      if (is_empty(head)) pool.emplace_back(std::forward<X>(val), end());
+      else pool.emplace_back(std::forward<X>(val), head);
       return pool.size();
     }
   }
   
   template <typename X>
   list_type _push_back(X&& val, list_type head) {
-    if (is_empty(head)) return push_front(val, head);
-        // find last node
+    if (is_empty(head)) return push_front(std::forward<X>(val), head);
+    // find last node
     list_type it = head;
     while(next(it)!= end()) it=next(it);
     if (free_node_list) {
       auto new_tail = free_node_list;
       free_node_list=next(free_node_list);
-      value(new_tail)=val;
+      value(new_tail)=std::forward<X>(val);
       next(new_tail)=end();
       next(it)=new_tail;
     }
     else {
-      pool.emplace_back(val, end());
+      pool.emplace_back(std::forward<X>(val), end());
       next(it)=pool.size();
     }
     return head;
   }
-
+  
   /*
-  void _print(list_type it) const noexcept {  // This makes sense only if value is ``printable''
+    void _print(list_type it) const noexcept {  // This makes sense only if value is ``printable'' (it has a << operator overloaded)
     while(it!= end()) {
-      std::cout << value(it) << " " ;         // Maybe it is better to comment this function
-      it=next(it);                            // We cannot std::cout << std::vector(..) ..
+    std::cout << value(it) << " " ;           // Maybe it is better to comment this function (although might be useful for debugging)
+    it=next(it);                              // Actuallu, we cannot std::cout << std::vector(..) ..
     }
     std::cout << std::endl;
-  }
+    }
   */
   
 public:
   
   list_pool() noexcept = default ;
-  //list_pool()  {std::cout << "default constructor" << std::endl;}
-  explicit list_pool(size_type n) {  pool.reserve(n); } // reserve n nodes in the pool
-  list_pool(list_pool&& x) = default;
-  //list_pool(list_pool&& )  {std::cout << "move constructor" << std::endl;}
-  list_pool& operator=(list_pool&& x) = default;
-  //list_pool& operator=(list_pool&& ) {std::cout << "move assignment" << std::endl;  return *this;}
+  
+  explicit list_pool(size_type n) {  pool.reserve(n); }   // reserve n nodes in the pool
+
+  list_pool(list_pool&& x) noexcept = default;            
+  
+  list_pool& operator=(list_pool&& x) noexcept = default; 
+  
   list_pool(const list_pool& that) = default;
-  //list_pool(const list_pool& )  {std::cout << "copy constructor" << std::endl;}
+  
   list_pool& operator=(const list_pool& x) = default;
-  //list_pool& operator=(const list_pool& )  {std::cout << "copy assignment" << std::endl;  return *this;}
-  ~list_pool() = default;
-  //~list_pool()  {std::cout << "default destructor" << std::endl;}
+  
+  ~list_pool() = default; // noexcept by default, right?
+  
+  //list_pool() noexcept {std::cout << "list_pool default constructor" << std::endl;}
+  
+  //list_pool(list_pool&& that) noexcept : pool{std::move(that.pool)}, free_node_list{std::move(that.free_node_list)}
+  // {std::cout << "list_pool move constructor" << std::endl;}
+  
+  //list_pool& operator=(list_pool&& that) noexcept {
+  //    if (this != &that){pool=std::move(that.pool); free_node_list=std::move(that.free_node_list);}
+  //    std::cout << "list_pool move assignment" << std::endl;  return *this;
+  //}
+  
+  //list_pool(const list_pool& that) : pool{that.pool}, free_node_list{that.free_node_list} {std::cout << "list_pool copy constructor" << std::endl;}
+  
+  //list_pool& operator=(const list_pool& that) {
+  //    if (this != &that){pool=that.pool; free_node_list=that.free_node_list;}
+  //    std::cout << "list_pool copy assignment" << std::endl; return *this;
+  //}
+  
+  //~list_pool()  {std::cout << "list_pool default destructor" << std::endl;}
+  
   using iterator =  _iterator<node_t, T, N>;
   using const_iterator =  _iterator<node_t, const T,  N>;
   
@@ -203,7 +254,7 @@ public:
   list_type push_back(T&& val, list_type head)       { return _push_back(std::move(val), head); }
   
   list_type free(list_type x) noexcept { // delete first node
-    if(is_empty(x)) { std::cout << "The list is already empty" << std::endl; return x;}
+    if(is_empty(x)) { std::cout << "The list is already empty" << std::endl; return x;} // This is not the best, but other possibilities give weird behaviors
     auto tmp = next(x);
     next(x) = free_node_list;
     free_node_list = x;
@@ -211,7 +262,7 @@ public:
   }
   
   list_type free_list(list_type x) noexcept { // free entire list
-    if(is_empty(x)) { std::cout <<"The list is already empty" << std::endl; return x; }
+    if(is_empty(x)) { std::cout << "The list is already empty" << std::endl; return x; }
     while(x!= end())
       x=free(x);
     return x;
@@ -226,19 +277,19 @@ public:
     return cnt;
   }
   /*
-  void print_list(const list_type head) const noexcept {
+    void print_list(const list_type head) const noexcept {
     _print(head);
-  }
-  
-  void print_free_list() const noexcept {
+    }
+    
+    void print_free_list() const noexcept {
     _print(free_node_list);
-  }
-  
-  void print_pool() const noexcept {
+    }
+    
+    void print_pool() const noexcept {
     if(pool.size()==0) { std::cout << "pool is empty" << std::endl; return; }
     for(size_type i = 0; i < pool.size() ; ++i)
-      std::cout << "(pool[" << i << "].value = " << pool[i].value
-		<< ", pool[" << i << "].next= " << pool[i].next << " )" << std::endl;
-  }
+    std::cout << "(pool[" << i << "].value = " << pool[i].value
+    << ", pool[" << i << "].next= " << pool[i].next << " )" << std::endl;
+    }
   */
 };
