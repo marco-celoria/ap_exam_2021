@@ -70,7 +70,8 @@ class list_pool {
   
   struct node_t {
     node_t() noexcept = default;
-    node_t(const T v, const N n) : value{v}, next{n} {}
+    node_t(const T &v, const N n) noexcept: value{v}, next{n} {}
+    node_t( T &&v, const N n) noexcept: value{std::move(v)}, next{n} {}
     node_t(node_t&&) noexcept = default;
     node_t& operator=(node_t&&) noexcept = default;
     node_t(const node_t& ) = default;
@@ -129,15 +130,15 @@ class list_pool {
       return new_head;
     }
     else {
-      if (is_empty(head)) pool.emplace_back(std::forward<X>(val), end());
-      else pool.emplace_back(std::forward<X>(val), head);
+      if (is_empty(head)) {pool.emplace_back(std::forward<X>(val), end());}
+      else  {pool.emplace_back(std::forward<X>(val), head);}
       return pool.size();
     }
   }
   
   template <typename X>
   list_type _push_back(X&& val, list_type head) {
-    if (is_empty(head)) return push_front(std::forward<X>(val), head);
+    if (is_empty(head)) return _push_front(std::forward<X>(val), head);
     // find last node
     list_type it = head;
     while(next(it)!= end()) it=next(it);

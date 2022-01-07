@@ -1,7 +1,7 @@
 #include "list_pool.hpp"
 #include <cassert>
 #include <algorithm>
-
+#include<vector>
 template <typename T,typename S > void boo_const (const list_pool<T> & x, S l)
 {
   auto it = x.begin(l);
@@ -289,6 +289,34 @@ int main()
   for(auto it = pool_ma.cbegin(lcp); it != pool_ma.cend(lcp); ++it)
     std::cout << *it << " ";
   std::cout << std::endl;
+  std::cout << "====================" << std::endl;
+  std::cout << "Pool list vs vector" << std::endl;
+  {
+    list_pool<foo> pool_vec;
+    auto lv = new_pool.new_list();
+    lv=pool_vec.push_front(foo{"bye"}, lv);
+    lv=pool_vec.push_front(foo{"hi"}, lv);
+    lv=pool_vec.free(lv);
+    lv=pool_vec.push_front(foo{"hi"}, lv);
+  }
+  std::cout << "++++++++++" << std::endl;
+  {
+    std::vector<foo> vec;
+    vec.push_back(foo{"hi"});
+    vec.push_back(foo{"bye"});
+    vec.pop_back();
+    vec.push_back(foo{"bye"});
+  }
+  std::cout << "++++++++++" << std::endl;
+  {
+    std::vector<foo> vec;
+    vec.emplace_back("hi");
+    vec.emplace_back("bye");
+    vec.pop_back();
+    vec.emplace_back(foo{"bye"});
+  }
+  std::cout << "++++++++++" << std::endl;
+  std::cout << "We are as fast as std::vector<T>::push_back, but still slower than std::vector<T>::emplace_back" << std::endl;
   std::cout << "--------------------" << std::endl;
   std::cout << "Throw check:" << std::endl;
   std::cout << "This shall NOT throw error:" << std::endl;
