@@ -22,8 +22,7 @@ public:
   using iterator_category = std::forward_iterator_tag;
   using size_type = typename std::vector<node_t>::size_type;
   
-  _iterator(std::vector<node_t> * ptr, list_type x) noexcept : ptr_pool{ptr}, current{x} {}
-  // We do not acquire any resources
+  _iterator(std::vector<node_t> * ptr, list_type x) noexcept : ptr_pool{ptr}, current{x} {} // We do not acquire any resources
   
   reference operator*() const  {
     check(current, "dereference past end");
@@ -69,14 +68,14 @@ template <typename T, typename N = std::size_t>
 class list_pool {
   
   struct node_t {
-    node_t() noexcept = default;
-    node_t(const T &v, const N n) noexcept: value{v}, next{n} {}
-    node_t( T &&v, const N n) noexcept: value{std::move(v)}, next{n} {}
+    node_t() noexcept = default;                                             // I hope that the default constructor of T does not throw error...
+    node_t(const T &v, const N n) noexcept: value{v}, next{n} {}             // To be noexcept, or not to be noexcept, that is the question.
+    node_t( T &&v, const N n)     noexcept: value{std::move(v)}, next{n} {}  // To be noexcept, or not to be noexcept, that is the question.
     node_t(node_t&&) noexcept = default;
     node_t& operator=(node_t&&) noexcept = default;
     node_t(const node_t& ) = default;
     node_t& operator=(const node_t& ) = default;
-    ~node_t() = default;
+    ~node_t() = default;  // noexcept by default, right?
     
     //node_t() {std::cout << "note_t default constructor" << std::endl;}
     
@@ -101,8 +100,7 @@ class list_pool {
     // May std::move_if_noexcept(g); be a good idea to suggest std::vector<node_t> to use move semantics for Non-throwing nodes ?
     // Or maybe something like
     // C& operator=(C&& c) noexcept(alloc_traits::propagate_on_container_move_assignment{} || alloc_traits::is_always_equal{});
-    // Final decision: we adopt risky NOT Strong exception safety policy, we are HPC and moves are noexpect
-    // With this policy I checked that sometimes the compiler chooses to use a move constructor rather than a copy constructor
+    // Final decision: we adopt risky NOT Strong exception safety policy, we are HPC and we opt for noexpect moves
     
     T value;
     N next;
@@ -160,7 +158,7 @@ class list_pool {
     void _print(list_type it) const noexcept {  // This makes sense only if value is ``printable'' (it has a << operator overloaded)
     while(it!= end()) {
     std::cout << value(it) << " " ;           // Maybe it is better to comment this function (although might be useful for debugging)
-    it=next(it);                              // Actuallu, we cannot std::cout << std::vector(..) ..
+    it=next(it);                              // Actually, we cannot std::cout << std::vector(..) ..
     }
     std::cout << std::endl;
     }

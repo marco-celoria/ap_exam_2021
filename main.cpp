@@ -2,13 +2,14 @@
 #include <cassert>
 #include <algorithm>
 #include<vector>
+#include <chrono>
+#include <forward_list>
+
 template <typename T,typename S > void boo_const (const list_pool<T> & x, S l)
 {
   auto it = x.begin(l);
   std::cout << "const front element = " << *it << std::endl;
-  //*it= 77;
 }
-
 
 template <typename T,typename S > void boo ( list_pool<T> & x, S l)
 {
@@ -316,15 +317,48 @@ int main()
     vec.emplace_back(foo{"bye"});
   }
   std::cout << "++++++++++" << std::endl;
-  std::cout << "We are as fast as std::vector<T>::push_back, but still slower than std::vector<T>::emplace_back" << std::endl;
   std::cout << "--------------------" << std::endl;
+
+  std::cout << "======================" << std::endl;
+  std::cout << "Let's see how fast we are!"<<std::endl;
+  auto ta0 = std::chrono::high_resolution_clock::now();
+  {
+    // do not use auto with expr templates!!!!
+    std::vector<int> fl;
+    for(auto i = 0; i < 100000000; ++i)
+      fl.push_back(i);
+    for(auto i = 0; i < 100000000; ++i)
+      fl.pop_back();
+    for(auto i = 0; i < 100000000; ++i)
+      fl.push_back(i);
+  }
+  auto ta1 = std::chrono::high_resolution_clock::now();
+  auto ta = std::chrono::duration_cast<std::chrono::milliseconds>(ta1 - ta0);
+  std::cout << ta.count() << std::endl;
+  std::cout << "--------------------" << std::endl;
+  auto tb0 = std::chrono::high_resolution_clock::now();
+  {
+    // do not use auto with expr templates!!!!
+    list_pool<int> speed_test;
+    auto st = speed_test.new_list();
+    for(auto i = 0; i < 100000000; ++i)
+      st=speed_test.push_front(i,st);
+    st=speed_test.free_list(st);
+    for(auto i = 0; i < 100000000; ++i)
+      st=speed_test.push_front(i,st);
+  }
+  auto tb1 = std::chrono::high_resolution_clock::now();
+  auto tb = std::chrono::duration_cast<std::chrono::milliseconds>(tb1 - tb0);
+  std::cout << tb.count() << std::endl;
+  std::cout << "Well, not so good..." << std::endl;
+  std::cout << "======================" << std::endl;
   std::cout << "Throw check:" << std::endl;
   std::cout << "This shall NOT throw error:" << std::endl;
   for(auto it = pool_reserve.begin(lres); it !=  pool_reserve.end(lres);  )
       std::cout << (it++)->msg << " "<< std::endl;
   std::cout << std::endl;
   std::cout << "This shall throw error:" << std::endl;
-  //try { // I have leaks when I leaks -atExit -- ./main.x, so I comment out the catches
+  //try { // I have memory leak when I leaks -atExit -- ./main.x, so I comment out the catches
   std::cout << *(pool_reserve.cend(lres)) << std::endl; 
   //}
   //catch (const std::out_of_range& oor) {
