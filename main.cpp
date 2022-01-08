@@ -465,26 +465,22 @@ int main()
   std::cout << "Throw check:" << std::endl;
   std::cout << "This shall NOT throw error:" << std::endl;
   std::cout << *(pool_foo.cbegin(lf)) << std::endl; 
-  // for(auto it = pool_foo.cbegin(lf); it !=  pool_foo.cend(lf);  )
-  //    std::cout << (it++)->msg << " "<< std::endl;
+  //for(auto it = pool_foo.cbegin(lf); it !=  pool_foo.cend(lf);  )
+  //  std::cout << (it++)->msg << " "<< std::endl;
   std::cout << std::endl;
   std::cout << "--------------------" << std::endl;
   std::cout << "This shall throw error:" << std::endl;
-  //try { // I have memory leak when I leaks -atExit -- ./main.x, so I comment out the catches
+  //try { // I have memory leak when I run leaks -atExit -- ./main.x, so I comment out the catches. But it is a problem of leaks -atExit -- I suppose
   std::cout << *(pool_foo.cend(lf)) << std::endl; 
   //}
   //catch (const std::out_of_range& oor) {
   //std::cerr << "Out of Range error: " << oor.what() << '\n';
   //}
-  /*
-    for(auto it = pool_foo.cbegin(lf); it !=  pool_foo.cend(lf);  )
-    {
-    std::cout << (++it)->msg << " "<< std::endl;
-    }
-  */
+  //for(auto it = pool_foo.cbegin(lf); it !=  pool_foo.cend(lf);  )
+  //  std::cout << (++it)->msg << " " << std::endl;
   /*
     try {
-    std::cout << *(pool_reserve.cend(lres)) << std::endl;
+    std::cout << *(pool_foo.cend(lf)) << std::endl;
     }
     catch (const out_of_range& s) {
     std::cerr << s.message << std::endl;
