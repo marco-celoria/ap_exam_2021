@@ -77,22 +77,26 @@ class list_pool {
     node_t& operator=(const node_t& ) = default;
     ~node_t() = default;  // noexcept by default, right?
     
-    //node_t() {std::cout << "note_t default constructor" << std::endl;}
+    // node_t() noexcept {std::cout << "note_t default constructor" << std::endl;}
     
-    //node_t(node_t&& that) noexcept : value{std::move(that.value)}, next{std::move(that.next)} {std::cout << "note_t move constructor" << std::endl;}
+    // node_t(node_t&& that) noexcept : value{std::move(that.value)}, next{std::move(that.next)} {std::cout << "note_t move constructor" << std::endl;}
+
+    // node_t(const node_t& that ) : value{that.value}, next{that.next}  {std::cout << "note_t copy constructor" << std::endl;}
+
+    // ~node_t() {std::cout << "note_t default destructor" << std::endl;}
     
-    //node_t& operator=(node_t&&that) noexcept {
-    //    if (this != &that){value=std::move(that.value); next= std::move(that.next);}
-    //    std::cout << "note_t move assignment" << std::endl; return *this;
-    //}
+    /*
+      node_t& operator=(node_t&&that) noexcept {
+      if (this != &that){value=std::move(that.value); next= std::move(that.next);}
+      std::cout << "note_t move assignment" << std::endl; return *this;
+      }
+    */
     
-    //node_t& operator=(node_t&&) noexcept = default;
-    //node_t(const node_t& that ) : value{that.value}, next{that.next}  {std::cout << "note_t copy constructor" << std::endl;}
-    //node_t& operator=(const node_t& that) {
-    //    if (this != &that){value=that.value; next=that.next;} std::cout << "note_t copy assignment" << std::endl; return *this;
-    //}
-    
-    // //~node_t() {std::cout << "note_t default destructor" << std::endl;}
+    /*
+      node_t& operator=(const node_t& that) {
+      if (this != &that){value=that.value; next=that.next;} std::cout << "note_t copy assignment" << std::endl; return *this;
+      }
+    */
     
     // Question: When I move/move-assign nodes, I am moving also the T value object. Right?
     // What if the T object is complicated, and it has a move constructor that throws an error?
@@ -157,8 +161,8 @@ class list_pool {
   /*
     void _print(list_type it) const noexcept {  // This makes sense only if value is ``printable'' (it has a << operator overloaded)
     while(it!= end()) {
-    std::cout << value(it) << " " ;           // Maybe it is better to comment this function (although might be useful for debugging)
-    it=next(it);                              // Actually, we cannot std::cout << std::vector(..) ..
+    std::cout << value(it) << " " ;             // Maybe it is better to comment this function (although might be useful for debugging)
+    it=next(it);                                // Actually, we cannot std::cout << std::vector(..) ..
     }
     std::cout << std::endl;
     }
@@ -180,52 +184,58 @@ public:
   
   ~list_pool() = default; // noexcept by default, right?
   
-  //list_pool() noexcept {std::cout << "list_pool default constructor" << std::endl;}
+  // list_pool() noexcept {std::cout << "list_pool default constructor" << std::endl;}
   
-  //list_pool(list_pool&& that) noexcept : pool{std::move(that.pool)}, free_node_list{std::move(that.free_node_list)}
-  // {std::cout << "list_pool move constructor" << std::endl;}
+  /*
+    list_pool(list_pool&& that) noexcept : pool{std::move(that.pool)}, free_node_list{std::move(that.free_node_list)}
+    {std::cout << "list_pool move constructor" << std::endl;}
+  */
   
-  //list_pool& operator=(list_pool&& that) noexcept {
-  //    if (this != &that){pool=std::move(that.pool); free_node_list=std::move(that.free_node_list);}
-  //    std::cout << "list_pool move assignment" << std::endl;  return *this;
-  //}
+  /*
+    list_pool& operator=(list_pool&& that) noexcept {
+    if (this != &that){pool=std::move(that.pool); free_node_list=std::move(that.free_node_list);}
+    std::cout << "list_pool move assignment" << std::endl;  return *this;
+    }
+  */
   
-  //list_pool(const list_pool& that) : pool{that.pool}, free_node_list{that.free_node_list} {std::cout << "list_pool copy constructor" << std::endl;}
+  // list_pool(const list_pool& that) : pool{that.pool}, free_node_list{that.free_node_list} {std::cout << "list_pool copy constructor" << std::endl;}
   
-  //list_pool& operator=(const list_pool& that) {
-  //    if (this != &that){pool=that.pool; free_node_list=that.free_node_list;}
-  //    std::cout << "list_pool copy assignment" << std::endl; return *this;
-  //}
+  /*
+    list_pool& operator=(const list_pool& that) {
+    if (this != &that){pool=that.pool; free_node_list=that.free_node_list;}
+    std::cout << "list_pool copy assignment" << std::endl; return *this;
+    }
+  */
   
-  //~list_pool()  {std::cout << "list_pool default destructor" << std::endl;}
+  // ~list_pool()  {std::cout << "list_pool default destructor" << std::endl;}
   
   using iterator =  _iterator<node_t, T, N>;
   using const_iterator =  _iterator<node_t, const T,  N>;
   
   iterator begin(list_type head) noexcept {
-    //  std::cout << "[Ab]" << std::endl;
+    //  std::cout << "[Ab]" << " ";
     return iterator{ &pool, head };
   }
   iterator end(list_type ) noexcept { // this is not a typo
-    //  std::cout << "[Ae]" << std::endl;
+    //  std::cout << "[Ae]" << " ";
     return iterator{ &pool, list_type (0) };
   } 
   
   const_iterator begin(list_type head) const noexcept {
-    //  std::cout << "[Bb]" << std::endl;
+    //  std::cout << "[Bb]" << " ";
     return const_iterator{const_cast<std::vector<node_t>*>(&pool), head};
   }
   const_iterator end(list_type ) const noexcept {
-    //  std::cout << "[Be]" << std::endl;
+    //  std::cout << "[Be]" << " ";
     return const_iterator{const_cast<std::vector<node_t>*>(&pool), list_type(0)};
   }
   
   const_iterator cbegin(list_type head) const noexcept {
-    //  std::cout << "[Cb]" << std::endl;
+    //  std::cout << "[Cb]" << " ";
     return const_iterator{const_cast<std::vector<node_t>*>(&pool), head};
   }
   const_iterator cend(list_type ) const noexcept {
-    //  std::cout << "[Ce]" << std::endl;
+    //  std::cout << "[Ce]" << " ";
     return const_iterator{const_cast<std::vector<node_t>*>(&pool), list_type(0)};
   }
   
