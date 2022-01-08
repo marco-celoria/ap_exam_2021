@@ -202,7 +202,7 @@ int main()
   std::cout << "=============================" << std::endl;
   std::cout << "Check begin, end:" << std::endl;
   std::cout << "Let's start with:" << std::endl;
-  for(auto it = pool.begin(l2); it != pool.end(l2); ++it)
+  for(auto it = pool.cbegin(l2); it != pool.cend(l2); ++it)
     std::cout << *it << " " ;
   std::cout << std::endl;
  std::cout << "Increment all elements by one " << std::endl;
@@ -464,8 +464,9 @@ int main()
   std::cout << "=============================" << std::endl;
   std::cout << "Throw check:" << std::endl;
   std::cout << "This shall NOT throw error:" << std::endl;
-  for(auto it = pool_foo.begin(lf); it !=  pool_foo.end(lf);  )
-      std::cout << (it++)->msg << " "<< std::endl;
+  std::cout << *(pool_foo.cbegin(lf)) << std::endl; 
+  // for(auto it = pool_foo.cbegin(lf); it !=  pool_foo.cend(lf);  )
+  //    std::cout << (it++)->msg << " "<< std::endl;
   std::cout << std::endl;
   std::cout << "--------------------" << std::endl;
   std::cout << "This shall throw error:" << std::endl;
@@ -476,7 +477,7 @@ int main()
   //std::cerr << "Out of Range error: " << oor.what() << '\n';
   //}
   /*
-    for(auto it = pool_reserve.begin(lres); it !=  pool_reserve.end(lres);  )
+    for(auto it = pool_foo.cbegin(lf); it !=  pool_foo.cend(lf);  )
     {
     std::cout << (++it)->msg << " "<< std::endl;
     }
