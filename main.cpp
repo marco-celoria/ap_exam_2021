@@ -169,7 +169,7 @@ int main()
   auto N = std::find(pool.cbegin(l1), pool.cend(l1), 2);
   if(N!=pool.cend(l1)) std::cout << "This is not the cend, my only friend"<< std::endl;
   std::cout << "=============================" << std::endl;
-  std::cout << "Check two list in a pool:" << std::endl;
+  std::cout << "Check two lists in a pool:" << std::endl;
   std::cout << "pool has a list l1 with the following elements" << std::endl;
   for(auto it = pool.cbegin(l1) ; it != pool.cend(l1); ++it )
     std::cout << *it << " " ;
