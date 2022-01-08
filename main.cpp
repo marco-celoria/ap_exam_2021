@@ -2,7 +2,7 @@
 #include "list_pool_instrumented.hpp"
 #include <cassert>
 #include <algorithm>
-#include<vector>
+#include <vector>
 #include <chrono>
 #include <forward_list>
 #include <list>
@@ -330,30 +330,88 @@ int main()
     std::cout << *it << " ";
   std::cout << std::endl;
   std::cout << "=============================" << std::endl;
-  std::cout << "Pool list vs vector:" << std::endl;
+  std::cout << "Pool list vs vector (rvalue reference):" << std::endl;
   {
     list_pool<foo> pool_vec;
     auto lv = new_pool.new_list();
+    std::cout << "---" << std::endl;
     lv=pool_vec.push_front(foo{"bye"}, lv);
+    std::cout << "---" << std::endl;
     lv=pool_vec.push_front(foo{"hi"}, lv);
+    std::cout << "---" << std::endl;
     lv=pool_vec.free(lv);
+    std::cout << "---" << std::endl;
     lv=pool_vec.push_front(foo{"hi"}, lv);
+    std::cout << "---" << std::endl;
   }
   std::cout << "--------------------" << std::endl;
   {
     std::list<foo> vec;
+    std::cout << "---" << std::endl;
     vec.push_back(foo{"hi"});
+    std::cout << "---" << std::endl;
     vec.push_back(foo{"bye"});
+    std::cout << "---" << std::endl;
     vec.pop_back();
+    std::cout << "---" << std::endl;
     vec.push_back(foo{"bye"});
+    std::cout << "---" << std::endl;
   }
   std::cout << "--------------------" << std::endl;
   {
     std::vector<foo> vec;
+    std::cout << "---" << std::endl;
     vec.emplace_back("hi");
+    std::cout << "---" << std::endl;
     vec.emplace_back("bye");
+    std::cout << "---" << std::endl;
     vec.pop_back();
-    vec.emplace_back(foo{"bye"});
+    std::cout << "---" << std::endl;
+    vec.emplace_back("bye");
+    std::cout << "---" << std::endl;
+  }
+  std::cout << "=============================" << std::endl;
+  std::cout << "Pool list vs vector (lvalue reference):" << std::endl;
+  foo first{"bye"};
+  foo second{"hi"};
+  {
+    list_pool<foo> pool_vec;
+    auto lv = new_pool.new_list();
+    std::cout << "---" << std::endl;
+    lv=pool_vec.push_front(first, lv);
+    std::cout << "---" << std::endl;
+    lv=pool_vec.push_front(second, lv);
+    std::cout << "---" << std::endl;
+    lv=pool_vec.free(lv);
+    std::cout << "---" << std::endl;
+    lv=pool_vec.push_front(second, lv);
+    std::cout << "---" << std::endl;
+  }
+  std::cout << "--------------------" << std::endl;
+  {
+    std::list<foo> vec;
+    std::cout << "---" << std::endl;
+    vec.push_back(second);
+    std::cout << "---" << std::endl;
+    vec.push_back(first);
+    std::cout << "---" << std::endl;
+    vec.pop_back();
+    std::cout << "---" << std::endl;
+    vec.push_back(first);
+    std::cout << "---" << std::endl;
+  }
+  std::cout << "--------------------" << std::endl;
+  {
+    std::vector<foo> vec;
+    std::cout << "---" << std::endl;
+    vec.emplace_back(second);
+    std::cout << "---" << std::endl;
+    vec.emplace_back(first);
+    std::cout << "---" << std::endl;
+    vec.pop_back();
+    std::cout << "---" << std::endl;
+    vec.emplace_back(first);
+    std::cout << "---" << std::endl;
   }
   std::cout << "=============================" << std::endl;
   std::cout << "Let's see how fast we are!" << std::endl;
