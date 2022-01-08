@@ -228,7 +228,6 @@ public:
     std::cout << "[Cb]" << " " ;
     return const_iterator{const_cast<std::vector<node_t>*>(&pool), head};
   }
-  
   const_iterator cend(list_type ) const noexcept {
     std::cout << "[Ce]"  << " " ;
     return const_iterator{const_cast<std::vector<node_t>*>(&pool), list_type(0)};

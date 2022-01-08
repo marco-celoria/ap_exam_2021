@@ -362,7 +362,6 @@ int main()
   std::cin >> iterations;
   auto ta0 = std::chrono::high_resolution_clock::now();
   {
-    // do not use auto with expr templates!!!!
     std::vector<int> fl_1;
     std::vector<int> fl_2;
     for(auto i = 0; i < iterations; ++i)
@@ -384,7 +383,6 @@ int main()
   std::cout << "--------------------" << std::endl;
   auto tb0 = std::chrono::high_resolution_clock::now();
   {
-    // do not use auto with expr templates!!!!
     list_pool<int, int> speed_test;
     auto st_1 = speed_test.new_list();
     auto st_2 = speed_test.new_list();
@@ -405,12 +403,13 @@ int main()
   auto tb = std::chrono::duration_cast<std::chrono::milliseconds>(tb1 - tb0);
   std::cout << tb.count() << std::endl;
   std::cout << "Well, not so good..." << std::endl;
- std::cout << "=============================" << std::endl;
+  std::cout << "=============================" << std::endl;
   std::cout << "Throw check:" << std::endl;
   std::cout << "This shall NOT throw error:" << std::endl;
   for(auto it = pool_foo.begin(lf); it !=  pool_foo.end(lf);  )
       std::cout << (it++)->msg << " "<< std::endl;
   std::cout << std::endl;
+  std::cout << "--------------------" << std::endl;
   std::cout << "This shall throw error:" << std::endl;
   //try { // I have memory leak when I leaks -atExit -- ./main.x, so I comment out the catches
   std::cout << *(pool_foo.cend(lf)) << std::endl; 
