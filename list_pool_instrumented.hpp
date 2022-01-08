@@ -78,8 +78,8 @@ class list_pool {
     // ~node_t() = default;  // noexcept by default, right?
     
     node_t() noexcept {std::cout << "note_t default constructor" << std::endl;}
-    node_t(const T &v, const N n) noexcept: value{v}, next{n} {std::cout << "note_t constructor 1" << std::endl;}
-    node_t( T &&v, const N n)     noexcept: value{std::move(v)}, next{n} {std::cout << "note_t constructor 2" << std::endl;}
+    node_t(const T &v, const N n) noexcept: value{v}, next{std::move(n)} {std::cout << "note_t constructor 1" << std::endl;}
+    node_t( T &&v, const N n)     noexcept: value{std::move(v)}, next{std::move(n)} {std::cout << "note_t constructor 2" << std::endl;}
     
     node_t(node_t&& that) noexcept : value{std::move(that.value)}, next{std::move(that.next)} {std::cout << "note_t move constructor" << std::endl;}
     

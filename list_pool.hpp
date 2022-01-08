@@ -69,8 +69,8 @@ class list_pool {
   
   struct node_t {
     node_t() noexcept = default;                                             // I hope that the default constructor of T does not throw error...
-    node_t(const T &v, const N n) noexcept: value{v}, next{n} {}             // To be noexcept, or not to be noexcept, that is the question.
-    node_t( T &&v, const N n)     noexcept: value{std::move(v)}, next{n} {}  // To be noexcept, or not to be noexcept, that is the question.
+    node_t(const T &v, const N n) noexcept: value{v}, next{std::move(n)} {}             // To be noexcept, or not to be noexcept, that is the question.
+    node_t( T &&v, const N n)     noexcept: value{std::move(v)}, next{std::move(n)} {}  // To be noexcept, or not to be noexcept, that is the question.
     node_t(node_t&&) noexcept = default;
     node_t& operator=(node_t&&) noexcept = default;
     node_t(const node_t& ) = default;
