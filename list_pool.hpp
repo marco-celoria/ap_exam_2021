@@ -22,7 +22,7 @@ public:
   using iterator_category = std::forward_iterator_tag;
   using size_type = typename std::vector<node_t>::size_type;
   
-  _iterator(std::vector<node_t> * ptr, list_type x) noexcept : ptr_pool{ptr}, current{x} {} // We do not acquire any resources
+  _iterator(std::vector<node_t> * ptr, list_type x) noexcept : ptr_pool{ptr}, current{std::move(x)} {} // We do not acquire any resources
   
   reference operator*() const  {
     check(current, "dereference past end");
